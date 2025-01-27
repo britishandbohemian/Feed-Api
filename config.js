@@ -1,18 +1,9 @@
-import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 // Get the directory name of the current module
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Load environment variables from .env file
-const result = dotenv.config({ path: join(__dirname, '.env') });
-
-if (result.error) {
-    console.error('❌ Error loading .env file:', result.error);
-    process.exit(1);
-}
 
 // Log all environment variables (use caution with sensitive data in production)
 console.log('✅ Loaded environment variables:');
