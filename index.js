@@ -11,23 +11,19 @@ import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 import errorHandler from './middleware/errorHandler.js';
 import passport from './config/passport.js';
+
 // Initialize Express app
 const app = express();
 
 // Define PORT
 const PORT = process.env.PORT || 5000;
 
-
-app.get('/', (req, res) => {
-  res.send('Hello, Vercel!');
-});
 // ====================
 // Middleware Setup
 // ====================
 
 // Set security HTTP headers
 app.use(helmet());
-
 
 // Body parsers (replacing body-parser)
 app.use(express.json());
@@ -74,6 +70,11 @@ app.use('/api/users', userRoutes);
 // Mount task-related routes
 app.use('/api/tasks', taskRoutes);
 
+// Root route
+app.get('/', (req, res) => {
+  res.send('Hello, Vercel!');
+});
+
 // ====================
 // Global Error Handler
 // ====================
@@ -82,19 +83,11 @@ app.use('/api/tasks', taskRoutes);
 app.use(errorHandler);
 
 // ====================
-// Start Server
+// Export for Vercel
 // ====================
 
-const startServer = async () => {
-  await connectDB(); // Connect to MongoDB before starting the server
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-  });
+// Export the app as a serverless function
+export default async (req, res) => {
+  await connectDB(); // Connect to MongoDB before handling requests
+  return app(req, res);
 };
-
-// Start the server
-startServer().catch((error) => {
-  console.error('Failed to start server:', error);
-  process.exit(1);
-});
