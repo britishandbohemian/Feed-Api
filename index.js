@@ -7,16 +7,20 @@ import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 
 // Import routes and middleware
-import userRoutes from '../routes/userRoutes.js';
-import taskRoutes from '../routes/taskRoutes.js';
-import errorHandler from '../middleware/errorHandler.js';
-import passport from '../config/passport.js';
+import userRoutes from './routes/userRoutes.js';
+import taskRoutes from './routes/taskRoutes.js';
+import errorHandler from './middleware/errorHandler.js';
+import passport from './config/passport.js';
 // Initialize Express app
 const app = express();
 
 // Define PORT
 const PORT = process.env.PORT || 5000;
 
+
+app.get('/', (req, res) => {
+  res.send('Hello, Vercel!');
+});
 // ====================
 // Middleware Setup
 // ====================
@@ -24,13 +28,6 @@ const PORT = process.env.PORT || 5000;
 // Set security HTTP headers
 app.use(helmet());
 
-// Enable CORS with specific configuration
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:3000', // Adjust as necessary
-    credentials: true, // Allow cookies to be sent
-  })
-);
 
 // Body parsers (replacing body-parser)
 app.use(express.json());

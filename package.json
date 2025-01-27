@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "mocha",
-    "start": "node api/index.js",
-    "dev": "nodemon api/index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "ensure-dependencies": "npm install"
   },
   "keywords": [],
