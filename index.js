@@ -1,105 +1,55 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import cors from 'cors';
-import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
-import rateLimit from 'express-rate-limit';
-import morgan from 'morgan';
+import dotenv from 'dotenv';
 
-// Import routes and middleware
+// Load environment variables FIRST (before other imports)
+dotenv.config({ path: './.env' }); // Explicit path for .env file
+
+// Other imports
 import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
-import errorHandler from './middleware/errorHandler.js';
-import passport from './config/passport.js';
 
-// Initialize Express app
+// Initialize Express
 const app = express();
-
-// Define PORT
 const PORT = process.env.PORT || 5000;
 
 // ====================
-// Middleware Setup
+// Middleware (simplified)
 // ====================
-
-// Set security HTTP headers
-app.use(helmet());
-
-// Enable CORS (if needed)
-app.use(cors());
-
-// Body parsers (replacing body-parser)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Cookie parser to parse cookies from requests
-app.use(cookieParser());
-
-// HTTP request logger (optional, useful for development)
-app.use(morgan('dev'));
-
-// Rate Limiting to prevent brute-force attacks
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again after 15 minutes.',
-});
-app.use(limiter);
-
 // ====================
-// MongoDB Connection
+// MongoDB Connection (optimized)
 // ====================
-
-let cachedDb = null; // Cache the MongoDB connection
-
 const connectDB = async () => {
-  if (cachedDb) {
-    console.log('Using cached MongoDB connection');
-    return cachedDb;
-  }
-
+  if (mongoose.connection.readyState === 1) return; // Already connected
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('MongoDB connected successfully');
-    cachedDb = db; // Cache the connection
-    return db;
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected');
   } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1); // Exit if database connection fails
+    console.error('MongoDB connection failed:', error);
+    process.exit(1);
   }
 };
 
 // ====================
 // Routes
 // ====================
-
-// Mount user-related routes
 app.use('/api/users', userRoutes);
-
-// Mount task-related routes
 app.use('/api/tasks', taskRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.send('Hello, Vercel!');
-});
+app.get('/', (req, res) => res.send('Hello, Vercel!'));
 
 // ====================
-// Global Error Handler
+// Server Setup
 // ====================
-
-// This should be the last middleware
-app.use(errorHandler);
-
-// ====================
-// Export for Vercel
-// ====================
-
-// Export the app as a serverless function
 export default async (req, res) => {
-  await connectDB(); // Connect to MongoDB before handling requests
+  await connectDB(); // Connect on every serverless request
   return app(req, res);
 };
+
+// Local development server
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => console.log(`Local server on port ${PORT}`));
+}
