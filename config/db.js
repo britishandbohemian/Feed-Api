@@ -1,9 +1,5 @@
 import mongoose from 'mongoose';
-import dotenv from 'dotenv';
 import User from '../models/userModel.js'; // Adjust path to your User model
-
-// Load environment variables from .env file
-dotenv.config();
 
 /**
  * Connect to MongoDB and optionally reset collections.
@@ -11,25 +7,19 @@ dotenv.config();
  */
 const connectDB = async (resetCollections = false) => {
     try {
+        // Hardcode your MongoDB connection URI
+        const MONGO_URI = "mongodb+srv://Kamogelo:112233445566@feed.sktqa.mongodb.net/?retryWrites=true&w=majority&appName=Feed";
+
         // Establish connection to MongoDB
-        await mongoose.connect(process.env.MONGO_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-            useFindAndModify: false,  // For compatibility with future versions
-            useCreateIndex: true,     // Ensures indexes are created correctly
-        });
+        await mongoose.connect(MONGO_URI);
 
         console.log('MongoDB connected successfully');
 
         // Optionally reset collections (only do this in non-production environments or with caution)
         if (resetCollections) {
-            if (process.env.NODE_ENV === 'development') {
-                console.log('Resetting collections...');
-                await User.collection.drop(); // Drop the User collection
-                console.log('Collections reset successfully');
-            } else {
-                console.log('Skipping collection reset in production environment.');
-            }
+            console.log('Resetting collections...');
+            await User.collection.drop(); // Drop the User collection
+            console.log('Collections reset successfully');
         }
     } catch (err) {
         console.error('MongoDB connection failed:', err.message);

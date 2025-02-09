@@ -1,55 +1,24 @@
 import express from 'express';
-import mongoose from 'mongoose';
-import dotenv from 'dotenv';
-
-// Load environment variables FIRST (before other imports)
-dotenv.config({ path: './.env' }); // Explicit path for .env file
-
-// Other imports
+import connectDB from './config/db.js'; // Adjust path to your connectDB file
 import userRoutes from './routes/userRoutes.js';
 import taskRoutes from './routes/taskRoutes.js';
 
 // Initialize Express
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
-// ====================
-// Middleware (simplified)
-// ====================
+// Middlewareb
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// ====================
-// MongoDB Connection (optimized)
-// ====================
-const connectDB = async () => {
-  if (mongoose.connection.readyState === 1) return; // Already connected
-  try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('MongoDB connected');
-  } catch (error) {
-    console.error('MongoDB connection failed:', error);
-    process.exit(1);
-  }
-};
+// Connect to MongoDB
+connectDB(); // Call without resetting collections
+// connectDB(true); // Call to reset collections (use with caution)
 
-// ====================
 // Routes
-// ====================
 app.use('/api/users', userRoutes);
 app.use('/api/tasks', taskRoutes);
 
-app.get('/', (req, res) => res.send('Hello, Vercel!'));
+app.get('/', (req, res) => res.send('Hello, World!'));
 
-// ====================
-// Server Setup
-// ====================
-export default async (req, res) => {
-  await connectDB(); // Connect on every serverless request
-  return app(req, res);
-};
-
-// Local development server
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => console.log(`Local server on port ${PORT}`));
-}
+// Start server
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

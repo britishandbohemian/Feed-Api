@@ -1,18 +1,18 @@
 import express from 'express';
-import * as taskController from '../controllers/taskController.js';
+import {
+    createTask,
+    getTasks,
+    getTaskById,
+    updateTask,
+    deleteTask,
+} from '../controllers/taskController.js';
 
 const router = express.Router();
 
-// Define routes
-router.route('/')
-    .post(taskController.createTask)
-    .get(taskController.getAllTasks);
-
-router.route('/:id')
-    .get(taskController.getTask)
-    .patch(taskController.updateTask)
-    .delete(taskController.deleteTask);
-
-router.get('/overdue', taskController.getOverdueTasks);
+router.post('/', createTask);
+router.get('/', getTasks);
+router.get('/:id', getTaskById);
+router.put('/:id', updateTask);
+router.delete('/:id', deleteTask);
 
 export default router;
