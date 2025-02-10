@@ -4,7 +4,6 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "mocha",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "ensure-dependencies": "npm install",
@@ -20,7 +19,6 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "express-async-handler": "^1.2.0",
     "express-rate-limit": "^7.5.0",
@@ -37,8 +35,12 @@
     "passport-google-oauth20": "^2.0.0"
   },
   "devDependencies": {
+    "@babel/register": "^7.25.9",
     "chai": "^5.1.2",
     "chai-http": "^5.1.1",
+    "dotenv": "^16.4.7",
+    "esm": "^3.2.25",
+    "install": "^0.13.0",
     "mocha": "^11.1.0",
     "nodemon": "^3.1.7",
     "supertest": "^7.0.0"

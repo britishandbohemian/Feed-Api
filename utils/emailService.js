@@ -1,111 +1,120 @@
 import nodemailer from 'nodemailer';
-import { config } from '../config.js';
 
 class EmailService {
     constructor() {
-        // Validate environment variables first
         this.validateConfig();
-        
+
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: "Kamogelomosiah@gmail.com",
-                pass: "hymjndnkyxyqrpol",
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASSWORD
             },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: true
             },
-            // Add timeout to avoid hanging
-            connectionTimeout: 5000,
-            greetingTimeout: 5000
+            connectionTimeout: 10000,
+            greetingTimeout: 10000
         });
     }
 
     validateConfig() {
-        if (!config.EMAIL_USER || !config.EMAIL_PASSWORD) {
-            throw new Error('Email configuration missing. Check EMAIL_USER and EMAIL_PASSWORD in .env');
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+            throw new Error('Missing email configuration. Set EMAIL_USER and EMAIL_PASSWORD in .env');
         }
     }
 
     async verifyConnection() {
         try {
             await this.transporter.verify();
-            console.log('SMTP connection successful');
+            console.log('SMTP connection verified');
+            return true;
         } catch (error) {
             console.error('SMTP connection failed:', error.message);
-            throw new Error('Failed to connect to email service');
+            throw new Error('Email service unavailable');
         }
     }
 
     async sendEmail(options) {
         try {
-            if (!options.to || !options.subject) {
-                throw new Error('Missing required email fields');
+            const requiredFields = ['to', 'subject', 'text'];
+            const missing = requiredFields.filter(field => !options[field]);
+
+            if (missing.length > 0) {
+                throw new Error(`Missing required fields: ${missing.join(', ')}`);
             }
 
             const mailOptions = {
-                from: `"${config.APP_NAME || 'Your App'}" <${config.EMAIL_USER}>`,
+                from: `"${process.env.APP_NAME || 'Task Manager'}" <${process.env.EMAIL_USER}>`,
                 ...options,
-                html: options.html ? options.html.trim() : undefined
+                html: options.html || options.text
             };
 
             await this.verifyConnection();
-            const info = await this.transporter.sendMail(mailOptions);
-            return info;
+            return await this.transporter.sendMail(mailOptions);
         } catch (error) {
-            const errorMessage = `Email sending failed: ${error.message}`;
-            console.error(errorMessage);
-            throw new Error(errorMessage);
+            console.error('Email send error:', error.message);
+            throw new Error(`Failed to send email: ${error.message}`);
         }
     }
 
-    async sendVerificationEmail(user, verificationUrl) {
-        if (!user?.email || !verificationUrl) {
-            throw new Error('Missing user email or verification URL');
-        }
+    async sendOtpEmail(email, otp) {
+        if (!email || !otp) throw new Error('Missing email or OTP');
 
         return this.sendEmail({
-            to: user.email,
-            subject: 'Verify Your Email',
-            text: `Click on the link to verify your email: ${verificationUrl}`,
+            to: email,
+            subject: 'Your Verification Code',
+            text: `Your OTP is: ${otp}\nValid for 10 minutes.`,
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                    <h2>Welcome!</h2>
-                    <p>Please verify your email by clicking the link below:</p>
-                    <a href="${verificationUrl}" 
-                       style="background-color: #4CAF50; color: white; padding: 10px 20px; 
-                              text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Verify Email
-                    </a>
-                    <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                        If you did not create an account, please ignore this email.
-                    </p>
+                <div style="font-family: Arial, max-width: 600px; margin: 0 auto;">
+                    <h2 style="color: #2c3e50;">Task Manager Verification</h2>
+                    <p>Your verification code:</p>
+                    <div style="font-size: 24px; font-weight: bold; margin: 20px 0;">
+                        ${otp}
+                    </div>
+                    <p style="color: #666;">Expires in 10 minutes</p>
                 </div>
             `
         });
     }
 
-    async sendPasswordResetEmail(user, resetUrl) {
-        if (!user?.email || !resetUrl) {
-            throw new Error('Missing user email or reset URL');
-        }
-
+    async sendVerificationEmail(email, verificationUrl) {
         return this.sendEmail({
-            to: user.email,
-            subject: 'Password Reset Request',
-            text: `Click on the link to reset your password: ${resetUrl}`,
+            to: email,
+            subject: 'Verify Your Email',
+            text: `Verify your email: ${verificationUrl}`,
             html: `
-                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+                <div style="font-family: Arial; max-width: 600px; margin: 0 auto;">
+                    <h2>Email Verification</h2>
+                    <a href="${verificationUrl}" style="
+                        background: #3498db; 
+                        color: white; 
+                        padding: 12px 24px;
+                        display: inline-block;
+                        text-decoration: none;
+                        border-radius: 4px;
+                    ">Verify Email</a>
+                </div>
+            `
+        });
+    }
+
+    async sendPasswordResetEmail(email, resetUrl) {
+        return this.sendEmail({
+            to: email,
+            subject: 'Password Reset Request',
+            text: `Reset your password: ${resetUrl}`,
+            html: `
+                <div style="font-family: Arial; max-width: 600px; margin: 0 auto;">
                     <h2>Password Reset</h2>
-                    <p>You have requested a password reset.</p>
-                    <a href="${resetUrl}" 
-                       style="background-color: #2196F3; color: white; padding: 10px 20px; 
-                              text-decoration: none; border-radius: 5px; display: inline-block;">
-                        Reset Password
-                    </a>
-                    <p style="color: #666; font-size: 12px; margin-top: 20px;">
-                        If you did not request this reset, please ignore this email.
-                    </p>
+                    <a href="${resetUrl}" style="
+                        background: #e74c3c;
+                        color: white;
+                        padding: 12px 24px;
+                        display: inline-block;
+                        text-decoration: none;
+                        border-radius: 4px;
+                    ">Reset Password</a>
                 </div>
             `
         });
