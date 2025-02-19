@@ -8,7 +8,7 @@ import User from '../models/userModel.js'; // Adjust path to your User model
 const connectDB = async (resetCollections = false) => {
     try {
         // Hardcode your MongoDB connection URI
-        const MONGO_URI = "mongodb+srv://Kamogelo:112233445566@feed.sktqa.mongodb.net/?retryWrites=true&w=majority&appName=Feed";
+        const MONGO_URI = "mongodb+srv://kamogelomosia:eightmillionby30@feed.jkbxs.mongodb.net/?retryWrites=true&w=majority&appName=Feed";
 
         // Establish connection to MongoDB
         await mongoose.connect(MONGO_URI);
@@ -23,7 +23,7 @@ const connectDB = async (resetCollections = false) => {
         }
     } catch (err) {
         console.error('MongoDB connection failed:', err.message);
-        process.exit(1); // Exit process with failure code
+        process.exit(1); // Exit process with failure code`
     }
 };
 

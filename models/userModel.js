@@ -142,10 +142,10 @@ userSchema.methods.setPassword = async function (newPassword) {
  * @returns {string} Plain OTP (to be sent to the user)
  */
 userSchema.methods.setEmailOtp = function () {
-    const otp = crypto.randomInt(100000, 999999).toString(); // Generate a 6-digit OTP
-    this.emailOtp = encrypt(otp); // Encrypt the OTP
-    this.emailOtpExpiry = Date.now() + 10 * 60 * 1000; // OTP valid for 10 minutes
-    return otp; // Return plain OTP for sending
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    this.emailOtp = otp;
+    this.emailOtpExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+    return otp;
 };
 
 /**
@@ -153,14 +153,9 @@ userSchema.methods.setEmailOtp = function () {
  * @param {string} otp - Plain OTP to validate
  * @returns {boolean} True if valid, false otherwise
  */
-userSchema.methods.validateEmailOtp = function (otp) {
-    try {
-        const decryptedOtp = decrypt(this.emailOtp); // Decrypt stored OTP
-        return decryptedOtp === otp && Date.now() < this.emailOtpExpiry;
-    } catch (error) {
-        console.error('Email OTP Validation Error:', error.message);
-        return false;
-    }
+userSchema.methods.validateEmailOtp = function (enteredOtp) {
+    return this.emailOtp === enteredOtp &&
+        this.emailOtpExpiry > Date.now();
 };
 
 /**

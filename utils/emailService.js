@@ -2,27 +2,25 @@ import nodemailer from 'nodemailer';
 
 class EmailService {
     constructor() {
-        this.validateConfig();
+
+
 
         this.transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: "sandbox.smtp.mailtrap.io",
+            port: 2525,
             auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASSWORD
+                user: "5b7859e651c50c",
+                pass: "8ee18a7cf2d64f"
             },
             tls: {
-                rejectUnauthorized: true
+                rejectUnauthorized: true,
             },
             connectionTimeout: 10000,
-            greetingTimeout: 10000
+            greetingTimeout: 10000,
         });
+
     }
 
-    validateConfig() {
-        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
-            throw new Error('Missing email configuration. Set EMAIL_USER and EMAIL_PASSWORD in .env');
-        }
-    }
 
     async verifyConnection() {
         try {
@@ -38,16 +36,16 @@ class EmailService {
     async sendEmail(options) {
         try {
             const requiredFields = ['to', 'subject', 'text'];
-            const missing = requiredFields.filter(field => !options[field]);
+            const missing = requiredFields.filter((field) => !options[field]);
 
             if (missing.length > 0) {
                 throw new Error(`Missing required fields: ${missing.join(', ')}`);
             }
 
             const mailOptions = {
-                from: `"${process.env.APP_NAME || 'Task Manager'}" <${process.env.EMAIL_USER}>`,
+                from: `"${process.env.APP_NAME || 'Task Manager'}" <${process.env.EMAIL_FROM || 'no-reply@example.com'}>`,
                 ...options,
-                html: options.html || options.text
+                html: options.html || options.text,
             };
 
             await this.verifyConnection();
@@ -74,30 +72,10 @@ class EmailService {
                     </div>
                     <p style="color: #666;">Expires in 10 minutes</p>
                 </div>
-            `
+            `,
         });
     }
 
-    async sendVerificationEmail(email, verificationUrl) {
-        return this.sendEmail({
-            to: email,
-            subject: 'Verify Your Email',
-            text: `Verify your email: ${verificationUrl}`,
-            html: `
-                <div style="font-family: Arial; max-width: 600px; margin: 0 auto;">
-                    <h2>Email Verification</h2>
-                    <a href="${verificationUrl}" style="
-                        background: #3498db; 
-                        color: white; 
-                        padding: 12px 24px;
-                        display: inline-block;
-                        text-decoration: none;
-                        border-radius: 4px;
-                    ">Verify Email</a>
-                </div>
-            `
-        });
-    }
 
     async sendPasswordResetEmail(email, resetUrl) {
         return this.sendEmail({
@@ -116,7 +94,7 @@ class EmailService {
                         border-radius: 4px;
                     ">Reset Password</a>
                 </div>
-            `
+            `,
         });
     }
 }

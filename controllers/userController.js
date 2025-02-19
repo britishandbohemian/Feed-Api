@@ -6,7 +6,7 @@ import emailService from '../utils/EmailService.js'; // Import email service for
 // 1. User Registration with OTP Generation
 export const createUser = async (req, res) => {
   try {
-    const { username, email, password } = req.body; // Destructure request body
+    const { username, email, password } = req.body;
 
     // Check for required fields
     if (!username || !email || !password) {
@@ -48,44 +48,79 @@ export const createUser = async (req, res) => {
 };
 
 // 2. OTP Verification
+// In verifyEmailOtp controller
 export const verifyEmailOtp = async (req, res) => {
   try {
-    const { email, otp } = req.body; // Destructure request body
+    const { email, otp } = req.body;
 
-    // Check for required fields
-    if (!email || !otp) {
-      return res.status(400).json({ success: false, message: 'Email and OTP are required for verification.' });
+    // Normalize and validate input
+    const normalizedEmail = email.toLowerCase().trim();
+    if (!normalizedEmail || !otp || otp.length !== 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Valid email and 6-digit OTP are required'
+      });
     }
 
-    // Find user by email and include OTP fields
-    const user = await User.findOne({ email }).select('+emailOtp +emailOtpExpiry');
+    // Find user with OTP fields
+    const user = await User.findOne({ email: normalizedEmail })
+      .select('+emailOtp +emailOtpExpiry');
+
     if (!user) {
-      return res.status(404).json({ success: false, message: 'No user found with the provided email.' });
+      return res.status(404).json({
+        success: false,
+        message: 'No account found with this email'
+      });
     }
 
     // Validate OTP
     if (!user.validateEmailOtp(otp)) {
-      return res.status(400).json({ success: false, message: 'The OTP is invalid or has expired. Please request a new one.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired OTP'
+      });
     }
 
-    // Mark email as verified
+    // Update user status
     user.isEmailVerified = true;
     user.emailOtp = undefined;
     user.emailOtpExpiry = undefined;
     await user.save();
 
-    // Respond with success message
-    res.status(200).json({ success: true, message: 'Your email has been verified successfully.' });
+    // Generate JWT token
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || '30d'
+    });
+
+    // Prepare response data
+    const userData = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isEmailVerified: user.isEmailVerified
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      token,
+      user: userData
+    });
+
   } catch (error) {
-    // Handle errors during verification
-    res.status(500).json({ success: false, message: 'An error occurred during OTP verification. Please try again later.', error: error.message });
+    console.error('OTP Verification Error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during verification'
+    });
   }
 };
 
 // 3. Resend OTP
 export const sendEmailOtp = async (req, res) => {
   try {
-    const { email } = req.body; // Destructure request body
+    const { email } = req.body;
+
     // Check for required fields
     if (!email) {
       return res.status(400).json({ success: false, message: 'Email is required to resend the OTP.' });
@@ -109,7 +144,6 @@ export const sendEmailOtp = async (req, res) => {
       expiresIn: process.env.OTP_EXPIRATION_MINUTES || 10,
     });
   } catch (error) {
-    // Handle errors while sending OTP
     res.status(500).json({ success: false, message: 'An error occurred while sending the OTP. Please try again later.', error: error.message });
   }
 };
@@ -117,7 +151,8 @@ export const sendEmailOtp = async (req, res) => {
 // 4. User Login
 export const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body; // Destructure request body
+    const { email, password } = req.body;
+
     // Check for required fields
     if (!email || !password) {
       return res.status(400).json({ success: false, message: 'Email and password are required for login.' });
@@ -149,7 +184,6 @@ export const loginUser = async (req, res) => {
     // Respond with success message and token
     res.status(200).json({ success: true, message: 'Login successful. Welcome back!', data: { ...sanitizedUser, token } });
   } catch (error) {
-    // Handle errors during login
     res.status(500).json({ success: false, message: 'An error occurred during login. Please try again later.', error: error.message });
   }
 };

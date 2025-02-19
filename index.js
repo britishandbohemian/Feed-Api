@@ -21,7 +21,7 @@ app.use(cors({
   }));
 
 // Connect to MongoDB
-connectDB(); // Call the function to connect to MongoDB without resetting collections
+connectDB(true); // Call the function to connect to MongoDB without resetting collections
 // connectDB(true); // Uncomment to reset collections (use with caution)
 
 // Routes
