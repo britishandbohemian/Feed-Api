@@ -17,11 +17,16 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 
 app.use(cors({
-  origin: 'https://cuddly-orbit-75g574g74jcx49w-3000.app.github.dev/', // Replace with your frontend URL
+  origin: 'https://feed-frontend-inky.vercel.app/', // Replace with your frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'API is healthy' });
+});
+
 
 // ✅ Connect to MongoDB
 connectDB(); // Call this without `true` unless you want to reset data
