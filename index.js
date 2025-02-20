@@ -14,8 +14,10 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ✅ Enable CORS for frontend communication
+
+
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://cuddly-orbit-75g574g74jcx49w-3000.app.github.dev/', // Replace with your frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization'],
