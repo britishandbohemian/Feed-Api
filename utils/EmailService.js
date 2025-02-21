@@ -9,8 +9,8 @@ class EmailService {
             host: "sandbox.smtp.mailtrap.io",
             port: 2525,
             auth: {
-                user: "5b7859e651c50c",
-                pass: "8ee18a7cf2d64f"
+                user: "472c09e00e044d",
+                pass: "77a82ca6a0dee9"
             },
             tls: {
                 rejectUnauthorized: true,

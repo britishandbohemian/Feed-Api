@@ -27,18 +27,18 @@ export const createUser = async (req, res) => {
     await user.save();
     await emailService.sendOtpEmail(user.email, otp);
 
-    const token = generateToken(user._id); // ✅ Generate JWT token
+    const token = generateToken(user._id); // Generate token after signup
 
     res.status(201).json({
       success: true,
       message: 'Account created. Check your email for OTP.',
-      token, // ✅ Send token so user is authenticated immediately
+      token, // Send token to frontend
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        isEmailVerified: user.isEmailVerified
-      }
+        isEmailVerified: user.isEmailVerified,
+      },
     });
   } catch (error) {
     if (error.code === 11000) {
@@ -64,24 +64,23 @@ export const verifyEmailOtp = async (req, res) => {
     user.emailOtpExpiry = undefined;
     await user.save();
 
-    const token = generateToken(user._id); // ✅ Generate token
+    const token = generateToken(user._id); // Generate token after OTP verification
 
     res.status(200).json({
       success: true,
       message: 'Email verified successfully',
-      token, // ✅ Send token for authentication
+      token, // Send token to frontend
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        isEmailVerified: user.isEmailVerified
-      }
+        isEmailVerified: user.isEmailVerified,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error verifying OTP', error: error.message });
   }
 };
-
 // ✅ 3. Resend OTP (No token needed)
 export const sendEmailOtp = async (req, res) => {
   try {
@@ -121,18 +120,18 @@ export const loginUser = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Email not verified' });
     }
 
-    const token = generateToken(user._id); // ✅ Generate token
+    const token = generateToken(user._id); // Generate token after login
 
     res.status(200).json({
       success: true,
       message: 'Login successful',
-      token, // ✅ Send token to frontend
+      token, // Send token to frontend
       user: {
         id: user._id,
         username: user.username,
         email: user.email,
-        isEmailVerified: user.isEmailVerified
-      }
+        isEmailVerified: user.isEmailVerified,
+      },
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Login error', error: error.message });
