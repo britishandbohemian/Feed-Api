@@ -1,5 +1,4 @@
 import express from 'express';
-import { protect } from '../middleware/authMiddleware.js';
 import {
   createTask,
   getTasks,
@@ -7,30 +6,25 @@ import {
   updateTask,
   deleteTask,
 } from '../controllers/taskController.js';
+import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Protect all task routes with authentication middleware
-router.use(protect);
-
+// ✅ Public Routes (No Token Required)
 // POST /tasks - Create a new task
-// This route is used to create a new task. The request body should contain the task details.
-router.post('/', createTask);
+router.post('/', createTask); // 🔓 Open for everyone
 
+// ✅ Protected Routes (Token Required)
 // GET /tasks - Get all tasks
-// This route is used to fetch a list of all tasks associated with the authenticated user.
-router.get('/', getTasks);
+router.get('/', protect, getTasks);
 
 // GET /tasks/:id - Get a task by ID
-// This route is used to fetch a specific task by its unique identifier (ID).
-router.get('/:id', getTaskById);
+router.get('/:id', protect, getTaskById);
 
 // PUT /tasks/:id - Update a task by ID
-// This route is used to update an existing task. The request body should contain the updated task details.
-router.put('/:id', updateTask);
+router.put('/:id', protect, updateTask);
 
 // DELETE /tasks/:id - Delete a task by ID
-// This route is used to delete a specific task by its unique identifier (ID).
-router.delete('/:id', deleteTask);
+router.delete('/:id', protect, deleteTask);
 
 export default router;
