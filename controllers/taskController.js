@@ -23,25 +23,24 @@ export const createTask = async (req, res) => {
   }
 };
 
-// Get all tasks
-// Example controller structure that should work with your routes
+// Get all tasks for the logged-in user
 export const getTasks = async (req, res) => {
   try {
     // Get user ID from auth middleware
     const userId = req.user._id;
 
-    // Fetch tasks for logged-in user
-    const tasks = await Task.find({ user: userId });
+    // Fetch tasks for the logged-in user (filter by owner)
+    const tasks = await Task.find({ owner: userId });
 
     res.status(200).json({
       success: true,
       count: tasks.length,
-      data: tasks
+      data: tasks,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: 'Server Error'
+      error: 'Server Error',
     });
   }
 };
