@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Enable CORS for all domains (temporary solution for development)
 app.use(cors({
-  origin: '*', // Allow requests from any domain
+  origin: 'https://3000-britishandbohemian-feed-8nope98gqq.app.codeanywhere.com', // Allow requests from any domain
   credentials: true, // Allow credentials (e.g., cookies)
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
