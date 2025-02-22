@@ -10,11 +10,10 @@ import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// ✅ Public Routes (No Token Required)
-// POST /tasks - Create a new task
-router.post('/', createTask); // 🔓 Open for everyone
-
 // ✅ Protected Routes (Token Required)
+// POST /tasks - Create a new task (requires authentication)
+router.post('/', protect, createTask); // 🔒 Add `protect` middleware here
+
 // GET /tasks - Get all tasks
 router.get('/', protect, getTasks);
 

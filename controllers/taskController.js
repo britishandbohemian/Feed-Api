@@ -7,30 +7,46 @@ export const createTask = async (req, res) => {
 
     // Validate input
     if (!title || !description) {
-      return res.status(400).json({ success: false, message: 'Title and description are required' });
+      return res.status(400).json({
+        success: false,
+        message: 'Title and description are required',
+      });
     }
 
     // Create task with authenticated user as owner
     const task = await Task.create({
       title,
       description,
-      owner: req.user._id,
+      owner: req.user._id, // Ensure `protect` middleware sets `req.user`
     });
 
-    res.status(201).json({ success: true, message: 'Task created successfully', data: task });
+    res.status(201).json({
+      success: true,
+      message: 'Task created successfully',
+      data: task,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to create task', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create task',
+      error: error.message,
+    });
   }
 };
 
-// Get all tasks for the logged-in user
+// Get all tasks (for all users or filtered by owner)
 export const getTasks = async (req, res) => {
   try {
-    // Get user ID from auth middleware
-    const userId = req.user._id;
+    // Optional: Filter tasks by owner if needed (use `owner: req.user._id`)
+    const tasks = await Task.find().populate('owner', 'username email');
 
-    // Fetch tasks for the logged-in user (filter by owner)
-    const tasks = await Task.find({ owner: userId });
+    if (tasks.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: 'No tasks found',
+        data: [],
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -40,7 +56,8 @@ export const getTasks = async (req, res) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      error: 'Server Error',
+      message: 'Failed to fetch tasks',
+      error: error.message,
     });
   }
 };
@@ -48,13 +65,33 @@ export const getTasks = async (req, res) => {
 // Get a single task by ID
 export const getTaskById = async (req, res) => {
   try {
-    const task = await Task.findById(req.params.id).populate('owner');
+    const task = await Task.findById(req.params.id).populate('owner', 'username email');
+
     if (!task) {
-      return res.status(404).json({ success: false, message: 'Task not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found',
+      });
     }
-    res.status(200).json({ success: true, message: 'Task retrieved successfully', data: task });
+
+    res.status(200).json({
+      success: true,
+      message: 'Task retrieved successfully',
+      data: task,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to retrieve task', error: error.message });
+    // Handle invalid ObjectId format
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid task ID format',
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve task',
+      error: error.message,
+    });
   }
 };
 
@@ -65,24 +102,46 @@ export const updateTask = async (req, res) => {
 
     // Validate input
     if (!title && !description) {
-      return res.status(400).json({ success: false, message: 'At least one field (title or description) is required to update the task' });
+      return res.status(400).json({
+        success: false,
+        message: 'At least one field (title or description) is required',
+      });
     }
 
-    // Create an update object with only allowed fields
     const updateFields = {};
     if (title) updateFields.title = title;
     if (description) updateFields.description = description;
 
-    // Find and update the task
-    const task = await Task.findByIdAndUpdate(req.params.id, updateFields, { new: true });
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      updateFields,
+      { new: true, runValidators: true } // Return updated task and validate updates
+    );
 
     if (!task) {
-      return res.status(404).json({ success: false, message: 'Task not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found',
+      });
     }
 
-    res.status(200).json({ success: true, message: 'Task updated successfully', data: task });
+    res.status(200).json({
+      success: true,
+      message: 'Task updated successfully',
+      data: task,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to update task', error: error.message });
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid task ID format',
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update task',
+      error: error.message,
+    });
   }
 };
 
@@ -90,11 +149,29 @@ export const updateTask = async (req, res) => {
 export const deleteTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndDelete(req.params.id);
+
     if (!task) {
-      return res.status(404).json({ success: false, message: 'Task not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'Task not found',
+      });
     }
-    res.status(200).json({ success: true, message: 'Task deleted successfully' });
+
+    res.status(200).json({
+      success: true,
+      message: 'Task deleted successfully',
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Failed to delete task', error: error.message });
+    if (error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid task ID format',
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete task',
+      error: error.message,
+    });
   }
 };
