@@ -12,12 +12,11 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Enable CORS for all domains (temporary solution for development)
+
 app.use(cors({
-  origin: '*', // Allow requests from any domain
-  credentials: true, // Allow credentials (e.g., cookies)
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-api-key']
 }));
 
 // Health check route
